@@ -10,9 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import org.bytedeco.javacpp.indexer.UByteRawIndexer;
 import org.bytedeco.javacpp.opencv_core;
+import static org.bytedeco.javacpp.opencv_core.BORDER_DEFAULT;
 import org.bytedeco.javacpp.opencv_imgcodecs;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
 import org.bytedeco.javacpp.opencv_imgproc;
+import static org.bytedeco.javacpp.opencv_imgproc.GaussianBlur;
 import static org.bytedeco.javacpp.opencv_imgproc.resize;
 
 /**
@@ -33,7 +35,7 @@ public class fingerprintRecognition {
     
     public void readImage(){
         File folder = new File("");
-        String fileName = folder.getAbsolutePath() + "/src/Database/finger";
+        String fileName = folder.getAbsolutePath() + "/src/Database/crop";
         System.out.println("Read fingerprint images!");
         File[] listOfFiles = new File(fileName).listFiles();
         Arrays.sort(listOfFiles);
@@ -44,7 +46,7 @@ public class fingerprintRecognition {
                 if (listOfFiles[i + idx * 8].getName().contains(".tif")){
                     String name =  listOfFiles[i + idx * 8].getName();
                     opencv_core.Mat image = imread(fileName + "/" + name, opencv_imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-                    resize(image, image, new opencv_core.Size(120, 120));
+                    resize(image, image, new opencv_core.Size(60, 60));
                     opencv_imgproc.equalizeHist(image, image);
                     opencv_core.Mat norlImg = normalizeSubWindow(image);
                     if(i < 6){

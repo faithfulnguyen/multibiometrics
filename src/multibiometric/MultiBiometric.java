@@ -8,16 +8,8 @@ import fingerprint.fingerprintRecognition;
 import face.faceRecognition;
 import java.io.IOException;
 import java.util.ArrayList;
-import org.bytedeco.javacpp.indexer.DoubleRawIndexer;
-import org.bytedeco.javacpp.indexer.FloatRawIndexer;
-import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.Rect;
-import org.bytedeco.javacpp.opencv_core.Size;
-import static org.bytedeco.javacpp.opencv_core.normalize;
-import static org.bytedeco.javacpp.opencv_imgcodecs.imwrite;
-import static org.bytedeco.javacpp.opencv_imgproc.calcHist;
-import static org.bytedeco.javacpp.opencv_imgproc.resize;
 
 
 /**
@@ -44,28 +36,30 @@ public class MultiBiometric {
         face.readImage();
         fingerprtn.readImage();
         System.out.println("fusion faces and fingerprints");
-        ArrayList<ArrayList<Mat>> tmpTstfc = face.getDataTest();
-        ArrayList<ArrayList<Mat>> tmpTstfg = fingerprtn.getDataTest();
-        mlt.fusionImagesTest(tmpTstfc, tmpTstfg);
-        mlt.fusionImagesTrain(face.getDataTrain(), fingerprtn.getDataTrain());
+        mlt.fusionImagesTest(face.getDataTest(), face.getFaceDataTest(),fingerprtn.getDataTest());
+        mlt.fusionImagesTrain(face.getDataTrain(), face.getFaceDataTrain(), fingerprtn.getDataTrain());
         mlt.match();
     }
   
-    public Mat fusionImage(Mat face, Mat fgprint){
-        Mat fusion = new Mat(face.rows() + fgprint.rows(), fgprint.cols(), face.type());
+    public Mat fusionImage(Mat face, Mat faceCrop, Mat fgprint){
+        Mat fusion = new Mat(face.rows() + faceCrop.rows() + fgprint.rows(), fgprint.cols(), face.type());
         Mat fc = fusion.apply(new Rect(0, 0, face.rows(), face.cols()));
         face.copyTo(fc);
-        Mat fg = fusion.apply(new Rect(0, face.rows(), fgprint.rows(), fgprint.cols()));
+        
+        Mat ff = fusion.apply(new Rect(0, face.rows(), fgprint.rows(), fgprint.cols()));
+        faceCrop.copyTo(ff);
+        
+        Mat fg = fusion.apply(new Rect(0, face.rows() * 2, fgprint.rows(), fgprint.cols()));
         fgprint.copyTo(fg);
         return fusion;
     }
     
-    public void fusionImagesTest(ArrayList<ArrayList<Mat>> face, ArrayList<ArrayList<Mat>> fgprint){
+    public void fusionImagesTest(ArrayList<ArrayList<Mat>> face, 
+                                 ArrayList<ArrayList<Mat>> faceCrop, ArrayList<ArrayList<Mat>> fgprint ){
         for(int i = 0; i < face.size(); i++){
             ArrayList<Mat> tmp = new ArrayList<>();
             for(int j = 0; j < face.get(0).size(); j++){
-                Mat fImage = fusionImage(face.get(i).get(j), fgprint.get(i).get(j));
-                imwrite("tst" + i + j + ".jpg", fImage); 
+                Mat fImage = fusionImage(face.get(i).get(j), faceCrop.get(i).get(j), fgprint.get(i).get(j));
                 Mat hist = baseProcess.Process.gaborSubWindow(fImage);
                 tmp.add(hist);
             }
@@ -73,12 +67,12 @@ public class MultiBiometric {
         }
     }
     
-    public void fusionImagesTrain(ArrayList<ArrayList<Mat>> face, ArrayList<ArrayList<Mat>> fgprint){
+    public void fusionImagesTrain(ArrayList<ArrayList<Mat>> face, 
+                                 ArrayList<ArrayList<Mat>> faceCrop, ArrayList<ArrayList<Mat>> fgprint){
         for(int i = 0; i < face.size(); i++){
             ArrayList<Mat> tmp = new ArrayList<>();
             for(int j = 0; j < face.get(0).size(); j++){
-                Mat fImage = fusionImage(face.get(i).get(j), fgprint.get(i).get(j));
-                imwrite("trt" + i + j + ".jpg", fImage);
+                Mat fImage = fusionImage(face.get(i).get(j), faceCrop.get(i).get(j), fgprint.get(i).get(j));
                 Mat hist = baseProcess.Process.gaborSubWindow(fImage);
                 tmp.add(hist);
             }
@@ -91,7 +85,8 @@ public class MultiBiometric {
         for(int i = 0; i < this.trainData.size(); i++){
             double tmp = 0;
             for(int j = 0; j < this.trainData.get(i).size(); j++){
-                double dis = baseProcess.Process.chiSquare(hist, this.trainData.get(i).get(j));
+                //double dis = baseProcess.Process.chiSquare(hist, this.trainData.get(i).get(j));
+                double dis = baseProcess.Process.euclideanDistance(hist, this.trainData.get(i).get(j));
                 tmp += dis;
             }
             tmp = tmp / (this.trainData.get(0).size() * 1.0);
@@ -100,7 +95,7 @@ public class MultiBiometric {
         double[] min = new double[2];
         min[0] = 10000000;
         for (int i = 0; i < score.length; i++){
-            if(min[0] > score[i]){
+            if(min[0] >= score[i]){
                 min[0] = score[i];
                 min[1] = i;
             }

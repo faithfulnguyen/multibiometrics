@@ -116,18 +116,19 @@ public class Process {
 
     public static opencv_core.Mat gaborSubWindow(Mat image){
         int index = 0;
-        double lm = 1, gm = 0.08, ps = CV_PI/4;
+        double lm = 1, gm = 0.8, ps = CV_PI/8;
         double theta = 0;
-        double[] sig = {1, 3, 5, 7, 9, 11, 13, 15, 17 };
-        int block = 20;
+        //double[] sig = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29 };
+        double sig = 7;
+        int block = 10;
         int siz = image.cols() / block;
-        int ori = 5;
+        int ori = 15;
         int shst = 256;
         Mat hist = new Mat(1, ori * siz * shst, CV_64F);
         DoubleRawIndexer dstIdx = hist.createIndexer();
         for(int r = 0; r < image.cols(); r += block){
             for(int g = 0; g < ori; g++){
-                opencv_core.Mat kernel = getGaborKernel(new opencv_core.Size(4, 4), sig[g], theta, lm, gm, ps, CV_32F);
+                opencv_core.Mat kernel = getGaborKernel(new opencv_core.Size(4, 4), sig, theta, lm, gm, ps, CV_32F);
                 opencv_core.Mat gabor = new opencv_core.Mat(image.rows(), image.cols(), image.type());
                 Mat tmp = image.apply(new opencv_core.Rect(r, 0, block, image.rows())); 
                 filter2D(tmp, gabor, image.type(), kernel);  
@@ -138,7 +139,7 @@ public class Process {
                     dstIdx.put(0, h + index, hdx.get(0, h));
                 }
                 index += shst;
-                theta += 15;
+                theta += 11.25;
             }
             theta = 0;     
         }      
