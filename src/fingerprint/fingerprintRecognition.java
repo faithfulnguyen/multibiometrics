@@ -11,6 +11,7 @@ import java.util.Arrays;
 import org.bytedeco.javacpp.indexer.UByteRawIndexer;
 import org.bytedeco.javacpp.opencv_core;
 import static org.bytedeco.javacpp.opencv_core.BORDER_DEFAULT;
+import org.bytedeco.javacpp.opencv_core.Size;
 import org.bytedeco.javacpp.opencv_imgcodecs;
 import static org.bytedeco.javacpp.opencv_imgcodecs.imread;
 import org.bytedeco.javacpp.opencv_imgproc;
@@ -61,7 +62,7 @@ public class fingerprintRecognition {
     }
 
     public static opencv_core.Mat normalizeSubWindow(opencv_core.Mat image){
-        int ut = 139;
+        int ut = 159;//137//159
         int vt = 100;//1607;  
         double u = meanMatrix(image);
         double v = variance(image, u);

@@ -116,10 +116,10 @@ public class Process {
 
     public static opencv_core.Mat gaborSubWindow(Mat image){
         int index = 0;
-        double lm = 1, gm = 0.8, ps = CV_PI/8;
+        double lm = 1, gm = 0.01, ps = CV_PI/8;
         double theta = 0;
-        //double[] sig = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29 };
-        double sig = 7;
+        //double[] sig = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31 };
+        double sig = 3;//3
         int block = 10;
         int siz = image.cols() / block;
         int ori = 15;
